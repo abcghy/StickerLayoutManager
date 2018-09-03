@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        vp_category.adapter = CategoryAdapter(supportFragmentManager)
+        vp_category.adapter = CategoryAdapter(supportFragmentManager, titles.size)
 
         stl_category.setCustomTabView { container, position, _ ->
             if (position == 0) {
@@ -137,26 +137,26 @@ class MainActivity : AppCompatActivity() {
         }
         mAdapter?.addAllSticker(listList)
     }
+}
 
-    inner class CategoryAdapter : FragmentStatePagerAdapter {
+class CategoryAdapter : FragmentStatePagerAdapter {
 
-        private var titles: Array<String> = arrayOf("emoji", "招呼", "再见", "开心", "难过", "生气", "卖萌", "害羞", "操蛋", "傻逼", "日狗", "册那")
+    var mCount: Int
 
-        override fun getItem(p0: Int): Fragment? {
-            return StickerCategoryFragment.newInstance(p0)
-        }
+    override fun getItem(p0: Int): Fragment? {
+        return StickerCategoryFragment.newInstance(p0)
+    }
 
-        override fun getCount(): Int = titles.size
+    override fun getCount(): Int = mCount
 
-        override fun getPageTitle(position: Int): CharSequence? = titles[position]
-
-        constructor(fm: FragmentManager?) : super(fm)
+    constructor(fm: FragmentManager?, count: Int) : super(fm) {
+        mCount = count
     }
 }
 
 class StickerAdapter : MultiTypeAdapter {
 
-    private var listList: MutableList<List<String>>? = null
+    private var listList: List<List<String>>? = null
 
     companion object {
         val EMOJI = 0
@@ -170,7 +170,7 @@ class StickerAdapter : MultiTypeAdapter {
         addViewTypeToLayoutMap(PLACE_HOLDER, R.layout.item_placeholder)
     }
 
-    fun addAllSticker(theListList: MutableList<List<String>>) {
+    fun addAllSticker(theListList: List<List<String>>) {
         listList = theListList
 
         listList?.forEach {
@@ -185,6 +185,7 @@ class StickerAdapter : MultiTypeAdapter {
             addAll(stickerPlaceHolderList, PLACE_HOLDER)
         }
     }
+
 }
 
 class StickerCategoryFragment : Fragment() {
@@ -299,19 +300,6 @@ class StickerLayoutManager : RecyclerView.LayoutManager {
         mTotalDistance = width * page
         offsetChildrenHorizontal(diff)
     }
-
-//    override fun scrollToPosition(position: Int) {
-////        super.scrollToPosition(position)
-//        // 计算 mTotalDistance，然后调用 offsetChildrenHorizontal
-//        mTotalDistance =
-//    }
-
-//    override fun smoothScrollToPosition(recyclerView: RecyclerView?, state: RecyclerView.State?,
-//                                        position: Int) {
-//        val linearSmoothScroller = LinearSmoothScroller(recyclerView!!.context)
-//        linearSmoothScroller.targetPosition = position
-//        startSmoothScroll(linearSmoothScroller)
-//    }
 }
 
 class StickerSnapHelper : LinearSnapHelper {
