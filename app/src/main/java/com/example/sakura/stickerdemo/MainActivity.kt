@@ -1,17 +1,11 @@
 package com.example.sakura.stickerdemo
 
-import android.content.Context
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentManager
-import android.support.v4.app.FragmentStatePagerAdapter
-import android.support.v7.widget.*
+import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.GridLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import com.github.markzhai.recyclerview.MultiTypeAdapter
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.tab_sticker.view.*
 
@@ -60,11 +54,11 @@ class MainActivity : AppCompatActivity() {
         recycler_view.adapter = mAdapter
         recycler_view.addItemDecoration(GridPaddingItemDecoration(2, 18, 0, GridLayoutManager.HORIZONTAL))
 
-        mLayoutManager = StickerLayoutManager(5, 2)
+        mLayoutManager = StickerLayoutManager(7, 3, 80,5, 2)
         recycler_view.layoutManager = mLayoutManager
 
 //        val snapHelper = LinearSnapHelper()
-        val snapHelper = StickerSnapHelper()
+        val snapHelper = StickerSnapHelper(7, 3, 80,5, 2)
         snapHelper.attachToRecyclerView(recycler_view)
 
         pages = IntArray(sizes.size) {
@@ -80,8 +74,6 @@ class MainActivity : AppCompatActivity() {
 
         snapHelper.mStickerPageChangeListener = object : StickerPageChangeListener {
             override fun onStickerPageChangeListener(page: Int) {
-                Log.d("test", "onStickerPageChangeListener: $page")
-
                 pcv.setCount(getCurrentCountBy(page))
                 pcv.setCurrentPosition(getCurrentPosBy(page))
 
@@ -137,196 +129,4 @@ class MainActivity : AppCompatActivity() {
         }
         mAdapter?.addAllSticker(listList)
     }
-}
-
-class CategoryAdapter : FragmentStatePagerAdapter {
-
-    var mCount: Int
-
-    override fun getItem(p0: Int): Fragment? {
-        return StickerCategoryFragment.newInstance(p0)
-    }
-
-    override fun getCount(): Int = mCount
-
-    constructor(fm: FragmentManager?, count: Int) : super(fm) {
-        mCount = count
-    }
-}
-
-class StickerAdapter : MultiTypeAdapter {
-
-    private var listList: List<List<String>>? = null
-
-    companion object {
-        val EMOJI = 0
-        val STICKER = 1
-        val PLACE_HOLDER = 2
-    }
-
-    constructor(context: Context?) : super(context) {
-        addViewTypeToLayoutMap(EMOJI, R.layout.item_emoji)
-        addViewTypeToLayoutMap(STICKER, R.layout.item_sticker)
-        addViewTypeToLayoutMap(PLACE_HOLDER, R.layout.item_placeholder)
-    }
-
-    fun addAllSticker(theListList: List<List<String>>) {
-        listList = theListList
-
-        listList?.forEach {
-            val stickerSize = it.size
-            addAll(it, STICKER)
-            val stickerPlaceholderSize = if (stickerSize % 10 == 0) {
-                0
-            } else {
-                10 - stickerSize % 10
-            }
-            val stickerPlaceHolderList = List(stickerPlaceholderSize) {}
-            addAll(stickerPlaceHolderList, PLACE_HOLDER)
-        }
-    }
-
-}
-
-class StickerCategoryFragment : Fragment() {
-
-    companion object {
-        fun newInstance(position: Int): StickerCategoryFragment {
-            return StickerCategoryFragment().apply {
-                arguments = Bundle().apply {
-                    putInt("position", position)
-                }
-            }
-        }
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return super.onCreateView(inflater, container, savedInstanceState)
-    }
-
-}
-
-class StickerLayoutManager : RecyclerView.LayoutManager {
-    override fun generateDefaultLayoutParams(): RecyclerView.LayoutParams {
-        return RecyclerView.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT)
-    }
-
-    private var columns: Int
-    private var rows: Int
-
-    private var pages = 2
-
-    constructor(columns: Int, rows: Int) : super() {
-        this.columns = columns
-        this.rows = rows
-    }
-
-    override fun canScrollHorizontally(): Boolean {
-        return true
-    }
-
-    private var mTotalDistance = 0
-    private var mMaxDistance = 0
-
-    // 向左滑 dx > 0, 向右滑 dx < 0
-    override fun scrollHorizontallyBy(dx: Int, recycler: RecyclerView.Recycler, state: RecyclerView.State): Int {
-        var dx = dx
-        if (mTotalDistance + dx < 0) {
-            dx = -mTotalDistance
-        }
-        if (mTotalDistance + dx > mMaxDistance) {
-            dx = mMaxDistance - mTotalDistance
-        }
-        mTotalDistance += dx
-        offsetChildrenHorizontal(-dx)
-        return dx
-    }
-
-    override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
-//        super.onLayoutChildren(recycler, state)
-        detachAndScrapAttachedViews(recycler)
-        val allCount = state.itemCount.apply {
-            if (this == 0) {
-                return
-            }
-        }
-
-        // <editor-fold desc="通过第一个 view 获得长和宽">
-        // 假设所有的长宽都一样
-        val firstView = recycler.getViewForPosition(0)
-        measureChildWithMargins(firstView, 0, 0)
-        val viewWidth = firstView.measuredWidth
-        val viewHeight = firstView.measuredHeight
-        // </editor-fold>
-
-        // <editor-fold desc="获取 RecyclerView 的长宽"
-        val recyclerViewWidth = width
-        val recyclerViewHeight = height
-        // </editor-fold>
-
-        pages = allCount / (rows * columns)
-        mMaxDistance = (pages - 1) * recyclerViewWidth
-
-        // 扩充当前数量到倍数
-//        val multiCount = pages * columns * rows
-        for (pos in 0 until allCount) {
-            // 找到对应的点
-            val currPage = pos / (rows * columns)
-            val column = pos % columns
-            val row = pos % (rows * columns) / columns
-
-            val verticalEmptySpace = recyclerViewHeight - viewHeight * rows
-            val singleVerticalEmptySpace = verticalEmptySpace / (rows + 1)
-            val currTop = singleVerticalEmptySpace * (row + 1) + viewHeight * row
-
-            val allSpace = recyclerViewWidth - columns * viewWidth
-            val singleSpace = allSpace / (columns + 1)
-            val left = singleSpace * (column + 1) + viewWidth * column + recyclerViewWidth * currPage
-
-            val posLeft = left
-            val posTop = currTop
-
-            val indexView = recycler.getViewForPosition(pos)
-            addView(indexView)
-            measureChildWithMargins(indexView, 0, 0)
-            layoutDecoratedWithMargins(indexView, posLeft, posTop, posLeft + viewWidth, posTop + viewHeight)
-        }
-    }
-
-    fun scrollToPage(page: Int) {
-        val diff = mTotalDistance - width * page
-        Log.d("test", "diff: $diff, mTotalDistance: $mTotalDistance, maxDistance: $width, page: $page")
-        mTotalDistance = width * page
-        offsetChildrenHorizontal(diff)
-    }
-}
-
-class StickerSnapHelper : LinearSnapHelper {
-    constructor() : super()
-
-    var currentPage = 0
-    var mStickerPageChangeListener: StickerPageChangeListener? = null
-
-    override fun findTargetSnapPosition(layoutManager: RecyclerView.LayoutManager?, velocityX: Int, velocityY: Int): Int {
-        var pos = super.findTargetSnapPosition(layoutManager, velocityX, velocityY)
-        pos = pos / 10 * 10 + 2
-        currentPage = pos / 10
-        mStickerPageChangeListener?.onStickerPageChangeListener(currentPage)
-        return pos
-    }
-
-    override fun findSnapView(layoutManager: RecyclerView.LayoutManager): View? {
-        val view = super.findSnapView(layoutManager) ?: return null
-        var pos = layoutManager.getPosition(view)
-        pos = pos / 10 * 10 + 2
-        currentPage = pos / 10
-        mStickerPageChangeListener?.onStickerPageChangeListener(currentPage)
-        return layoutManager.getChildAt(pos)
-    }
-
-}
-
-interface StickerPageChangeListener {
-    fun onStickerPageChangeListener(page: Int)
 }

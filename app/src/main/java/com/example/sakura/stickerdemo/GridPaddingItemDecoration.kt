@@ -14,8 +14,6 @@ class GridPaddingItemDecoration(val columns: Int, @Px val verticalSpace: Int,
         super.getItemOffsets(outRect, view, parent, state)
 
         with(outRect) {
-            val tvOrder = view.findViewById<TextView>(R.id.tv_order)
-            tvOrder?.text = "${parent.getChildAdapterPosition(view)}"
             if (orientation == GridLayoutManager.HORIZONTAL) {
 
             } else if (orientation == GridLayoutManager.VERTICAL) {

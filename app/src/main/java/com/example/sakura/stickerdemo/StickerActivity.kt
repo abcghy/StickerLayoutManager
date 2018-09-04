@@ -1,20 +1,20 @@
 package com.example.sakura.stickerdemo
 
-import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
-import com.bumptech.glide.Glide
+import com.github.markzhai.recyclerview.BaseViewAdapter
 import kotlinx.android.synthetic.main.activity_new.*
 import kotlinx.android.synthetic.main.tab_sticker.view.*
+import kotlin.collections.ArrayList
 
-class NewActivity: AppCompatActivity() {
+class StickerActivity: AppCompatActivity() {
 
-    private var titles: Array<String> = arrayOf("你好呀", "再见咯", "卖个萌", "吐个槽", "不开心", "尴尬了")
-    private var dirNames : Array<String> = arrayOf("hello", "bye", "cute", "complaints", "unhappy", "awkward")
+    private var titles: Array<String> = arrayOf("emoji", "你好呀", "再见咯", "卖个萌", "吐个槽", "不开心", "尴尬了")
+    private var dirNames : Array<String> = arrayOf("emoji", "hello", "bye", "cute", "complaints", "not_happy", "awkward")
 
     private var mAdapter: StickerAdapter? = null
     private var mLayoutManager: RecyclerView.LayoutManager? = null
@@ -60,13 +60,13 @@ class NewActivity: AppCompatActivity() {
         // <editor-fold desc="设置 Sticker RecyclerView">
         recycler_view.setHasFixedSize(true)
         mAdapter = StickerAdapter(this)
+        mAdapter?.setPresenter(Presenter())
         recycler_view.adapter = mAdapter
-        recycler_view.addItemDecoration(GridPaddingItemDecoration(2, 18, 0, GridLayoutManager.HORIZONTAL))
 
-        mLayoutManager = StickerLayoutManager(5, 2)
+        mLayoutManager = StickerLayoutManager(7, 3, 80, 5, 2)
         recycler_view.layoutManager = mLayoutManager
 
-        val snapHelper = StickerSnapHelper()
+        val snapHelper = StickerSnapHelper(7, 3, 80, 5, 2)
         snapHelper.attachToRecyclerView(recycler_view)
         // </editor-fold>
 
@@ -75,8 +75,6 @@ class NewActivity: AppCompatActivity() {
         // 滑动后，更新 pcv，更新 tab 选中
         snapHelper.mStickerPageChangeListener = object : StickerPageChangeListener {
             override fun onStickerPageChangeListener(page: Int) {
-                Log.d("test", "onStickerPageChangeListener: $page")
-
                 pcv.setCount(getCurrentCountBy(page))
                 pcv.setCurrentPosition(getCurrentPosBy(page))
 
@@ -123,7 +121,7 @@ class NewActivity: AppCompatActivity() {
         return 0
     }
 
-    val stickerRootDirName = "sticker"
+    private val stickerRootDirName = "sticker"
 
     var stickerListList = ArrayList<ArrayList<String>>()
 
@@ -136,13 +134,22 @@ class NewActivity: AppCompatActivity() {
      */
     private fun loadData() {
         // 1.
-        for (dirName in dirNames) {
-            val stickerList = ArrayList<String>()
-            for (stickerIndex in 0 until assets.list("sticker/$dirName").size) {
-//                Log.d("test", "dirName: $dirName, stickerName: ${assets.list("sticker/$dirName")[stickerIndex]}")
-                stickerList.add("file:///android_asset/sticker/$dirName/${assets.list("sticker/$dirName")[stickerIndex]}")
+        // emoji file
+        var emojiArray = resources.getStringArray(R.array.emoji_array)
+        val emojiList = ArrayList<String>()
+        emojiArray.forEach {
+            emojiList.add(it)
+        }
+        stickerListList.add(emojiList)
+
+        dirNames.forEachIndexed { index, dirName ->
+            if (index != 0) {
+                val stickerList = ArrayList<String>()
+                for (stickerIndex in 0 until assets.list("$stickerRootDirName/$dirName").size) {
+                    stickerList.add("file:///android_asset/$stickerRootDirName/$dirName/${assets.list("$stickerRootDirName/$dirName")[stickerIndex]}")
+                }
+                stickerListList.add(stickerList)
             }
-            stickerListList.add(stickerList)
         }
 
         // 2.
@@ -152,22 +159,34 @@ class NewActivity: AppCompatActivity() {
         }
 
         pages = IntArray(sizes.size) {
-            val i = sizes[it]
-            if (i % 10 != 0) {
-                i / 10 + 1
+            if (it == 0) {
+                val i = sizes[it]
+                if (i % 21 != 0) {
+                    i / 21 + 1
+                } else {
+                    i / 21
+                }
             } else {
-                i / 10
+                val i = sizes[it]
+                if (i % 10 != 0) {
+                    i / 10 + 1
+                } else {
+                    i / 10
+                }
             }
         }
 
-//        sizes.forEach {
-//            val list = ArrayList<String>()
-//            for (i in 0 until it) {
-//                list.add("")
-//            }
-//            listList.add(list)
-//        }
         // 3.
         mAdapter?.addAllSticker(stickerListList)
+    }
+
+    inner class Presenter : BaseViewAdapter.Presenter {
+        fun clickEmoji(emoji: String) {
+            Log.d("test", "emoji: $emoji")
+        }
+
+        fun clickSticker(stickerLocalPath: String) {
+            Log.d("test", "stickerLocalPath: $stickerLocalPath")
+        }
     }
 }

@@ -5,23 +5,20 @@
         <variable
             name="item"
             type="java.lang.String" />
+        <variable
+            name="presenter"
+            type="com.example.sakura.stickerdemo.StickerActivity.Presenter" />
     </data>
 
     <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="156px"
-        android:layout_height="156px"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
         >
         <ImageView
             android:id="@+id/iv_sticker"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:src="#FF9999"/>
-
-        <TextView
-            android:id="@+id/tv_order"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            tools:text="1"
-            android:layout_gravity="center"/>
+            imageResourceUrl="@{item}"
+            android:onClick="@{()->presenter.clickSticker(item)}"/>
     </FrameLayout>
 </layout>

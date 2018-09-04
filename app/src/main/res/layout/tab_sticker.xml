@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="43dp"
+    android:layout_width="52dp"
     android:layout_height="match_parent"
     tools:text="招呼"
     android:id="@+id/tv_tab_sticker"

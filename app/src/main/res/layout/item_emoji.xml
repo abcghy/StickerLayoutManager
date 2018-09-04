@@ -2,12 +2,20 @@
 <layout>
 
     <data>
-
+        <variable
+            name="item"
+            type="java.lang.String" />
+        <variable
+            name="presenter"
+            type="com.example.sakura.stickerdemo.StickerActivity.Presenter" />
     </data>
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="56dp"
-        android:layout_height="56dp">
-
-    </LinearLayout>
+    <com.vanniktech.emoji.EmojiTextView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/etv"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:text="@{item}"
+        android:textSize="20sp"
+        android:onClick="@{()->presenter.clickEmoji(item)}"/>
 </layout>
