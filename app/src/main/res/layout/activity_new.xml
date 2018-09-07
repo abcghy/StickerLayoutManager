@@ -22,7 +22,7 @@
         android:background="#353A58"
         android:orientation="vertical">
 
-        <android.support.v7.widget.RecyclerView
+        <com.example.sakura.stickerdemo.StickerRecyclerView
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -31,7 +31,7 @@
             tools:spanCount="5"
             tools:listitem="@layout/item_sticker">
 
-        </android.support.v7.widget.RecyclerView>
+        </com.example.sakura.stickerdemo.StickerRecyclerView>
 
         <com.example.sakura.stickerdemo.PageControlView
             android:id="@+id/pcv"

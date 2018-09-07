@@ -6,15 +6,16 @@ import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import com.github.markzhai.recyclerview.BaseViewAdapter
 import kotlinx.android.synthetic.main.activity_new.*
 import kotlinx.android.synthetic.main.tab_sticker.view.*
 import kotlin.collections.ArrayList
 
-class StickerActivity: AppCompatActivity() {
+class StickerActivity : AppCompatActivity() {
 
     private var titles: Array<String> = arrayOf("emoji", "你好呀", "再见咯", "卖个萌", "吐个槽", "不开心", "尴尬了")
-    private var dirNames : Array<String> = arrayOf("emoji", "hello", "bye", "cute", "complaints", "not_happy", "awkward")
+    private var dirNames: Array<String> = arrayOf("emoji", "hello", "bye", "cute", "complaints", "not_happy", "awkward")
 
     private var mAdapter: StickerAdapter? = null
     private var mLayoutManager: RecyclerView.LayoutManager? = null
@@ -189,4 +190,51 @@ class StickerActivity: AppCompatActivity() {
             Log.d("test", "stickerLocalPath: $stickerLocalPath")
         }
     }
+}
+
+class StickerScrollListener : RecyclerView.OnScrollListener {
+    constructor() : super()
+
+    private var isScroll = false
+//    private var recyclerView: RecyclerView? = null
+
+    private var offsetX: Int = 0
+
+    override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
+//        super.onScrolled(recyclerView, dx, dy)
+        offsetX += dx
+        if (dx != 0 || dy != 0) {
+            isScroll = true
+        }
+    }
+
+    override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+//        super.onScrollStateChanged(recyclerView, newState)
+        if (newState == RecyclerView.SCROLL_STATE_IDLE && isScroll) {
+            isScroll = !isScroll
+            scrollToPosition(recyclerView)
+        }
+    }
+
+    private var recyclerViewWidth = 1080
+
+    private fun scrollToPosition(recyclerView: RecyclerView) {
+//        Log.d("test", "recyclerView?.left: $offsetX")
+//        recyclerView?.left
+        var currentPos = offsetX
+        recyclerViewWidth = recyclerView.measuredWidth
+        val currPage = currentPos / recyclerViewWidth
+        var scrollPage = if (currentPos % recyclerViewWidth <= (recyclerViewWidth / 2)) {
+            // scroll to last page
+            currPage
+        } else {
+            // scroll to next page
+            currPage + 1
+        }
+        recyclerView.layoutManager?.offsetChildrenHorizontal(currentPos - scrollPage * recyclerViewWidth)
+    }
+
+//    private fun scrollToPage(page: Int) {
+//        recyclerView?.layoutManager?.scrollHorizontallyBy()
+//    }
 }
